@@ -21,7 +21,7 @@ public class PurchaseState : SagaStateMachineInstance, ISagaVersion
     public decimal? PurchaseTotal { get; set; }
     
     // to keep track of when it was last updated
-    public DateTimeOffset? LastUpdated { get; set; }
+    public DateTimeOffset LastUpdated { get; set; }
     
     public string ErrorMessage { get; set; }
     
