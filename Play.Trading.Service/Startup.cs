@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MassTransit;
@@ -17,6 +18,7 @@ using Play.Common.Identity;
 using Play.Common.MassTransit;
 using Play.Common.MongoDB;
 using Play.Common.Settings;
+using Play.Trading.Service.Entities;
 using Play.Trading.Service.StateMachines;
 
 namespace Play.Trading.Service
@@ -35,6 +37,7 @@ namespace Play.Trading.Service
         {
 
             services.AddMongo()
+                .AddMongoRepository<CatalogItem>("catalogitems")
                 .AddJwtBearer();
            AddMassTransit(services);
 
@@ -81,6 +84,9 @@ namespace Play.Trading.Service
             {
                 // saga specific configuration
                 configure.UsingPlayEconomyRabbitMq();
+                // scan entry assembly, find classes that implement IConsumer<T>
+                // register them with mass transit consumer
+                configure.AddConsumers(Assembly.GetEntryAssembly());
                 configure.AddSagaStateMachine<PurchaseStateMachine, PurchaseState>()
                     .MongoDbRepository(r =>
                         {
