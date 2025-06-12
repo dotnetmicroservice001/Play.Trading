@@ -25,7 +25,7 @@ public class CatalogItemCreatedConsumer : IConsumer<CatalogItemCreated>
         var item = await _catalogItemRepository.GetAsync(message.ItemId);
 
         // if it does exist then we return 
-        if (item != null)
+        if (item is not null)
         {
             return;
         }
