@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -36,9 +37,16 @@ namespace Play.Trading.Service
             services.AddMongo()
                 .AddJwtBearer();
            AddMassTransit(services);
-           
-            
-            services.AddControllers();
+
+
+           services.AddControllers(options =>
+               {
+                   options.SuppressAsyncSuffixInActionNames = false;
+               })
+               .AddJsonOptions(options =>
+               {
+                   options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+               });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Trading.Service", Version = "v1" });
@@ -84,6 +92,8 @@ namespace Play.Trading.Service
                         });
                 // to open up the bus through which messages are going to go 
                 services.AddMassTransitHostedService();
+                services.AddGenericRequestClient();
+                
             });
         }
     }
