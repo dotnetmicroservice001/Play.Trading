@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using GreenPipes;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +20,7 @@ using Play.Common.MassTransit;
 using Play.Common.MongoDB;
 using Play.Common.Settings;
 using Play.Trading.Service.Entities;
+using Play.Trading.Service.Exceptions;
 using Play.Trading.Service.StateMachines;
 
 namespace Play.Trading.Service
@@ -83,7 +85,11 @@ namespace Play.Trading.Service
             services.AddMassTransit(configure =>
             {
                 // saga specific configuration
-                configure.UsingPlayEconomyRabbitMq();
+                configure.UsingPlayEconomyRabbitMq(retryConfigurator =>
+                {
+                    retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
+                    retryConfigurator.Ignore(typeof(UnknownItemException));
+                });
                 // scan entry assembly, find classes that implement IConsumer<T>
                 // register them with mass transit consumer
                 configure.AddConsumers(Assembly.GetEntryAssembly());
