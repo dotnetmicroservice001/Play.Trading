@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using GreenPipes;
 using MassTransit;
+using MassTransit.SagaConfigurators;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -19,8 +20,11 @@ using Play.Common.Identity;
 using Play.Common.MassTransit;
 using Play.Common.MongoDB;
 using Play.Common.Settings;
+using Play.Identity.Contracts;
+using Play.Inventory.Contracts;
 using Play.Trading.Service.Entities;
 using Play.Trading.Service.Exceptions;
+using Play.Trading.Service.Settings;
 using Play.Trading.Service.StateMachines;
 
 namespace Play.Trading.Service
@@ -93,7 +97,11 @@ namespace Play.Trading.Service
                 // scan entry assembly, find classes that implement IConsumer<T>
                 // register them with mass transit consumer
                 configure.AddConsumers(Assembly.GetEntryAssembly());
-                configure.AddSagaStateMachine<PurchaseStateMachine, PurchaseState>()
+                
+                configure.AddSagaStateMachine<PurchaseStateMachine, PurchaseState>(sagaConfigurator =>
+                    {
+                        sagaConfigurator.UseInMemoryOutbox();
+                    })
                     .MongoDbRepository(r =>
                         {
                             var serviceSettings = Configuration.GetSection(nameof(ServiceSettings))
@@ -104,7 +112,9 @@ namespace Play.Trading.Service
                            r.DatabaseName = serviceSettings.ServiceName;
                         });
             });
-            
+            var queueSettings = Configuration.GetSection(nameof(QueueSettings)).Get<QueueSettings>();
+            EndpointConvention.Map<GrantItems>(new Uri(queueSettings.GrantItemsQueueAddress));
+            EndpointConvention.Map<DebitGil>( new Uri(queueSettings.DebitGilQueueAddress));
             // to open up the bus through which messages are going to go 
             services.AddMassTransitHostedService();
             services.AddGenericRequestClient();
