@@ -34,7 +34,7 @@ public class CalculatePurchaseTotalActivity : Activity<PurchaseState, PurchaseRe
         PurchaseRequested> context, Behavior<PurchaseState, 
         PurchaseRequested> next)
     {
-        PurchaseRequested message = context.Data; 
+        var message = context.Data; 
         var item = await _repository.GetAsync(message.ItemId);
         if (item == null)
         {

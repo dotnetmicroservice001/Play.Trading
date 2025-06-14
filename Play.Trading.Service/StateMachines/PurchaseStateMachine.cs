@@ -12,7 +12,7 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
     
     public State Completed { get; }
 
-    public State Faulted { get; set; }
+    public State Faulted { get; }
 
     // declare an event
     public Event<PurchaseRequested> PurchaseRequested { get;  }
@@ -39,27 +39,22 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
             When(PurchaseRequested)
                 .Then(context =>
                 {
-                    // data = Incoming event/message payload
-                    // instance = current state machine instance
-                    // (a persisted object often called a saga)
                     context.Instance.UserId = context.Data.UserId;
                     context.Instance.ItemId = context.Data.ItemId;
                     context.Instance.Quantity = context.Data.Quantity;
                     context.Instance.Received = DateTimeOffset.UtcNow;
                     context.Instance.LastUpdated = context.Instance.Received;
                 })
-                .Activity(x
-                    => x.OfType<CalculatePurchaseTotalActivity>())
+                .Activity(x => x.OfType<CalculatePurchaseTotalActivity>())
                 .TransitionTo(Accepted)
-                .Catch<Exception>( ex => ex.
-                    Then(context =>
-                    {
+                .Catch<Exception>(ex => ex.
+                    Then(context => {
                         context.Instance.ErrorMessage = context.Exception.Message;
                         context.Instance.LastUpdated = DateTimeOffset.UtcNow;
                     })
                     .TransitionTo(Faulted)
                 )
-            );
+        );
     }
 
     private void ConfigureAny()

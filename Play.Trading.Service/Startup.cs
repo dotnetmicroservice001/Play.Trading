@@ -97,16 +97,17 @@ namespace Play.Trading.Service
                     .MongoDbRepository(r =>
                         {
                             var serviceSettings = Configuration.GetSection(nameof(ServiceSettings))
-                                .Get<ServiceSettings>();
-                            var mongoSettings = Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
+                                                    .Get<ServiceSettings>();
+                            var mongoSettings = Configuration.GetSection(nameof(MongoDbSettings))
+                                                    .Get<MongoDbSettings>();
                            r.Connection = mongoSettings.ConnectionString;
                            r.DatabaseName = serviceSettings.ServiceName;
                         });
-                // to open up the bus through which messages are going to go 
-                services.AddMassTransitHostedService();
-                services.AddGenericRequestClient();
-                
             });
+            
+            // to open up the bus through which messages are going to go 
+            services.AddMassTransitHostedService();
+            services.AddGenericRequestClient();
         }
     }
 }
