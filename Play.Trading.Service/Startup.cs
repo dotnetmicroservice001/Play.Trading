@@ -115,6 +115,7 @@ namespace Play.Trading.Service
             var queueSettings = Configuration.GetSection(nameof(QueueSettings)).Get<QueueSettings>();
             EndpointConvention.Map<GrantItems>(new Uri(queueSettings.GrantItemsQueueAddress));
             EndpointConvention.Map<DebitGil>( new Uri(queueSettings.DebitGilQueueAddress));
+            EndpointConvention.Map<SubtractItems>( new Uri(queueSettings.SubtractItemsQueueAddress));
             // to open up the bus through which messages are going to go 
             services.AddMassTransitHostedService();
             services.AddGenericRequestClient();
