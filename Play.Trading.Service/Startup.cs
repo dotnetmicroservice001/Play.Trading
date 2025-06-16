@@ -1,20 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using GreenPipes;
 using MassTransit;
-using MassTransit.SagaConfigurators;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Play.Common.Identity;
 using Play.Common.MassTransit;
@@ -25,12 +19,15 @@ using Play.Inventory.Contracts;
 using Play.Trading.Service.Entities;
 using Play.Trading.Service.Exceptions;
 using Play.Trading.Service.Settings;
+using Play.Trading.Service.SignalR;
 using Play.Trading.Service.StateMachines;
 
 namespace Play.Trading.Service
 {
     public class Startup
     {
+        private const string AllowedOriginSetting = "AllowedOrigin";
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -62,6 +59,12 @@ namespace Play.Trading.Service
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Play.Trading.Service", Version = "v1" });
             });
+            
+            // register new classes to enable signal r 
+            services.AddSingleton<IUserIdProvider, UserIdProvider>()
+                .AddSingleton<MessageHub>()
+                .AddSignalR();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,6 +75,12 @@ namespace Play.Trading.Service
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Play.Trading.Service v1"));
+                app.UseCors(builder =>
+                {
+                    builder.WithOrigins(Configuration[AllowedOriginSetting])
+                        .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    // credentials = signalR service 
+                });
             }
 
             app.UseHttpsRedirection();
@@ -83,6 +92,7 @@ namespace Play.Trading.Service
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<MessageHub>("/messagehub");
             });
         }
 
