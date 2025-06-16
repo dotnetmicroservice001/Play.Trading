@@ -19,12 +19,12 @@ public class InventoryItemUpdatedConsumer : IConsumer<InventoryItemUpdated>
     {
         var message = context.Message;
         var inventoryItem = await _repository.GetAsync(item =>
-            item.UserId == message.UserId && item.CatalogItemID == message.UserId);
+            item.UserId == message.UserId && item.CatalogItemID == message.CatalogItemId);
         if (inventoryItem == null)
         {
             inventoryItem = new InventoryItem
             {
-                CatalogItemID = message.UserId,
+                CatalogItemID = message.CatalogItemId,
                 UserId = message.UserId,
                 Quantity = message.newTotalQuantity
             }; 
