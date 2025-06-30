@@ -19,13 +19,13 @@ The Trading microservice manages user trades within the Play Economy system. It 
 - Duende IdentityServer (OAuth 2.0 / OpenID Connect)
 
 ```bash
-export version=1.0.2
+export version=1.0.0
 export GH_OWNER=dotnetmicroservice001
 export GH_PAT="ghp_YourRealPATHere"
 docker build --secret id=GH_OWNER --secret id=GH_PAT -t play.trading:$version .
 ```
 
-## Run Docker Image
+## Run Docker Container
 ```bash 
 docker run -it --rm -p 5006:5006 --name identity -e MongoDbSettings__Host=mongo -e RabbitMQSettings__Host=rabbitmq --network playinfra_default play.trading:$version
 ```
