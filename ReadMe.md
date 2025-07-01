@@ -22,7 +22,8 @@ The Trading microservice manages user trades within the Play Economy system. It 
 export version=1.0.1
 export GH_OWNER=dotnetmicroservice001
 export GH_PAT="ghp_YourRealPATHere"
-docker build --secret id=GH_OWNER --secret id=GH_PAT -t play.trading:$version .
+export acrname="playeconomy01acr"
+docker build --secret id=GH_OWNER --secret id=GH_PAT -t "$acrname.azurecr.io/play.trading:$version" .
 ```
 
 ## Run Docker Container
@@ -36,4 +37,10 @@ docker run -it --rm \
   -e ServiceBusSettings__ConnectionString=$serviceBusConnString \
   -e ServiceSettings__MessageBroker="SERVICEBUS" \
   play.trading:$version
+```
+
+## Publishing Docker Image
+```bash 
+az acr login --name $acrname
+docker push "$acrname.azurecr.io/play.trading:$version"
 ```
