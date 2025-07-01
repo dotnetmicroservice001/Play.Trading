@@ -5,18 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
     <PackageReference Include="MassTransit.MongoDb" Version="7.3.1" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="7.3.1" />
     <PackageReference Include="Play.Catalog.Contracts" Version="1.0.2" />
-    <PackageReference Include="Play.Common" Version="1.0.10" />
+    <PackageReference Include="Play.Common" Version="1.0.12" />
     <PackageReference Include="Play.Identity.Contracts" Version="1.0.2" />
     <PackageReference Include="Play.Inventory.Contracts" Version="1.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Play.Identity\src\Play.Identity.Contracts\Play.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Play.Identity\src\Play.Identity.Contracts\Play.Identity.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
