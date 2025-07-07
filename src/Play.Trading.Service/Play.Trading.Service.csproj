@@ -12,9 +12,5 @@
     <PackageReference Include="Play.Inventory.Contracts" Version="1.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Play.Identity\src\Play.Identity.Contracts\Play.Identity.Contracts.csproj" />
-  </ItemGroup>
-
+  
 </Project>

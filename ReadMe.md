@@ -36,7 +36,7 @@ dotnet nuget push ../Packages/Play.Catalog.Contracts.$version.nupkg --api-key $g
 
 ## Build a Docker Image
 ```bash
-export version=1.0.2
+export version=1.0.3
 export GH_OWNER=dotnetmicroservice001
 export GH_PAT="ghp_YourRealPATHere"
 export acrname="playeconomy01acr"
