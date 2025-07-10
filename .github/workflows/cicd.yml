@@ -1,0 +1,46 @@
+name: CICD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  generate-version:
+    runs-on: ubuntu-latest
+    permissions: 
+     contents: write
+    steps:
+    - uses: actions/checkout@v4
+    - name: Github Tag Bump
+      id: tag_bump 
+      uses: anothrNick/github-tag-action@1.67.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        INITIAL_VERSION: 1.0.4
+        DEFAULT_BUMP: patch 
+
+    outputs: 
+      new-version: ${{ steps.tag_bump.outputs.new_tag }}
+
+  build-deploy-service:
+   runs-on: ubuntu-latest
+   needs: generate-version
+   env:
+    APP_NAME: playeconomy01
+    ACR_NAME: playeconomy01acr
+   steps:
+    - uses: actions/checkout@v4
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v6.18.0
+      with:
+        secrets: |
+          GH_OWNER=${{ github.repository_owner }}
+          GH_PAT=${{ secrets.GH_PAT }}
+        tags: "${{ env.ACR_NAME }}.azurecr.io/play.trading:${{ needs.generate-version.outputs.new-version }}"
+
+
+  
