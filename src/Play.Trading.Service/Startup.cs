@@ -65,6 +65,7 @@ namespace Play.Trading.Service
             services.AddSingleton<IUserIdProvider, UserIdProvider>()
                 .AddSingleton<MessageHub>()
                 .AddSignalR();
+            
             services.AddHealthChecks().AddMongoDb(); 
         }
 

@@ -41,6 +41,3 @@ jobs:
           GH_OWNER=${{ github.repository_owner }}
           GH_PAT=${{ secrets.GH_PAT }}
         tags: "${{ env.ACR_NAME }}.azurecr.io/play.trading:${{ needs.generate-version.outputs.new-version }}"
-
-
-  

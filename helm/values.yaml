@@ -1,15 +1,15 @@
 microserviceName: "trading"
 
 image:
-  repository: playeconomy01acr.azurecr.io/play.trading
-  tag : 1.0.3
+  repository: playeconomyapp.azurecr.io/play.trading
+  tag : 1.0.2
 
 envVariables:
   IdentitySettings__PathBase: /trading-svc
-  ServiceSettings__Authority: https://playeconomy-01.westus.cloudapp.azure.com/identity-svc
+  ServiceSettings__Authority: https://playeconomyapp.westus.cloudapp.azure.com/identity-svc
 
 container:
   port: 5006
 
-identityClientId: 7ccca8bb-12e7-4a7e-914b-782543302139
+identityClientId: 14350601-1910-4dcc-a4b6-ba33fffa3f0b
     
