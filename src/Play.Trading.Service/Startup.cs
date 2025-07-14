@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Play.Common.HealthChecks;
 using Play.Common.Identity;
@@ -47,7 +48,12 @@ namespace Play.Trading.Service
                 .AddJwtBearer();
            AddMassTransit(services);
 
-
+            services.AddLogging(loggingBuilder =>
+                {
+                    var seqSettings = Configuration.GetSection(nameof(SeqSettings)).Get<SeqSettings>();
+                    loggingBuilder.AddSeq(serverUrl: seqSettings.ServerUrl);
+                }
+            );
            services.AddControllers(options =>
                {
                    options.SuppressAsyncSuffixInActionNames = false;
@@ -67,6 +73,8 @@ namespace Play.Trading.Service
                 .AddSignalR();
             
             services.AddHealthChecks().AddMongoDb(); 
+            
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
