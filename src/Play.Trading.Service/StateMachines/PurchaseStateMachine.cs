@@ -1,6 +1,7 @@
 using System;
 using Automatonymous;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using Play.Identity.Contracts;
 using Play.Inventory.Contracts;
 using Play.Trading.Service.Activities;
@@ -11,6 +12,7 @@ namespace Play.Trading.Service.StateMachines;
 public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
 {
     private readonly MessageHub _messageHub;
+    private readonly ILogger<PurchaseStateMachine> _logger;
     public State Accepted { get; }
     
     public State ItemsGranted { get; }
@@ -28,9 +30,10 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
     public Event<Fault<DebitGil>> DebitGilFaulted { get; }
     
     
-    public PurchaseStateMachine(MessageHub messageHub)
+    public PurchaseStateMachine(MessageHub messageHub, ILogger<PurchaseStateMachine> logger)
     {
         _messageHub = messageHub;
+        _logger = logger;
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -64,6 +67,13 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                     context.Instance.Quantity = context.Data.Quantity;
                     context.Instance.Received = DateTimeOffset.UtcNow;
                     context.Instance.LastUpdated = context.Instance.Received;
+                    _logger.LogInformation(
+                        "Calculating purchase total for ItemId: {ItemId} with Quantity: {Quantity}, " +
+                        "CorrelationId: {CorrelationId}",
+                        context.Instance.ItemId,
+                        context.Instance.Quantity,
+                        context.Instance.CorrelationId
+                        );
                 })
                 .Activity(x => x.OfType<CalculatePurchaseTotalActivity>())
                 .Send( context => new GrantItems(
@@ -76,6 +86,12 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                     Then(context => {
                         context.Instance.ErrorMessage = context.Exception.Message;
                         context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                        _logger.LogError( 
+                            context.Exception, 
+                            "Could not calculate the total price with Corelation Id: {CorrelationId}. " +
+                            "Error: { ErrorMessage}",
+                            context.Instance.CorrelationId,
+                            context.Instance.ErrorMessage);
                     })
                     .TransitionTo(Faulted)
                 // let client know
@@ -92,6 +108,12 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                 .Then(context =>
                 {
                     context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                    _logger.LogInformation("Purchase Request with Correlation id: {CorrelationId} for User Id: {UserId}" +
+                        " has been approved with {Quantity} items granted", 
+                        context.Instance.CorrelationId,
+                        context.Instance.UserId,
+                        context.Instance.Quantity
+                        );
                 })
                 .Send( context => new DebitGil(
                         context.Instance.UserId,
@@ -104,6 +126,11 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                 {
                     context.Instance.ErrorMessage = context.Data.Exceptions[0].Message;
                     context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                    _logger.LogError( 
+                        "Could not grant items for purchase with Correlation id {CorrelationId}. " +
+                        "Error: {ErrorMessage}",
+                        context.Instance.CorrelationId,
+                        context.Instance.ErrorMessage);
                 })
                 .TransitionTo(Faulted)
                 .ThenAsync(async context => await _messageHub.SendStatusAsync(context.Instance))
@@ -119,6 +146,11 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                 .Then(context =>
                 {
                     context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                    _logger.LogInformation(
+                        "Gil debited successfully for purchase with Correlation id: {CorrelationId}. " +
+                        "Total amount: {PurchaseTotal}",
+                        context.Instance.CorrelationId,
+                        context.Instance.PurchaseTotal);
                 }).TransitionTo(Completed)
                 .ThenAsync( async context => await _messageHub.SendStatusAsync(context.Instance)),
             When(DebitGilFaulted)
@@ -132,6 +164,11 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                 {
                     context.Instance.ErrorMessage = context.Data.Exceptions[0].Message;
                     context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                    _logger.LogError(
+                        "Could not debit gil for purchase with Correlation id {CorrelationId}. " +
+                        "Error: {ErrorMessage}",
+                        context.Instance.CorrelationId,
+                        context.Instance.ErrorMessage);
                 })
                 .TransitionTo(Faulted)
                 .ThenAsync( async context => await _messageHub.SendStatusAsync(context.Instance))

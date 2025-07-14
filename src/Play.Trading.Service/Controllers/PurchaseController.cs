@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Play.Trading.Service.StateMachines;
 
 namespace Play.Trading.Service.Controllers;
@@ -16,11 +17,13 @@ public class PurchaseController :ControllerBase
     
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IRequestClient<GetPurchaseState> _purchaseClient; 
+    private readonly ILogger<PurchaseController> _logger;
     public PurchaseController(IPublishEndpoint publishEndpoint, 
-        IRequestClient<GetPurchaseState> purchaseClient)
+        IRequestClient<GetPurchaseState> purchaseClient, ILogger<PurchaseController> logger)
     {
         _publishEndpoint = publishEndpoint;
         _purchaseClient = purchaseClient;
+        _logger = logger;
     }
 
     [HttpGet("status/{idempotencyId}")]
@@ -47,6 +50,12 @@ public class PurchaseController :ControllerBase
     {
         var userId = User.FindFirstValue("sub");
         
+        _logger.LogInformation(
+            "Purchase requested: UserId: {UserId}, ItemId: {ItemId}, Quantity: {Quantity}, IdempotencyId: {IdempotencyId}",
+            userId,
+            purchase.ItemId,
+            purchase.Quantity,
+            purchase.IdempotencyId);
         var message = new PurchaseRequested(
             Guid.Parse(userId),
             purchase.ItemId.Value,
