@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Play.Common.HealthChecks;
 using Play.Common.Identity;
 using Play.Common.Logging;
@@ -67,9 +69,22 @@ namespace Play.Trading.Service
                 .AddSingleton<MessageHub>()
                 .AddSignalR();
             
-            services.AddHealthChecks().AddMongoDb(); 
-            
-            
+            services.AddHealthChecks().AddMongoDb();
+            services.AddOpenTelemetry()
+                .WithTracing(builder =>
+                {
+                    var serviceSettings = Configuration.GetSection(nameof(ServiceSettings))
+                        .Get<ServiceSettings>();
+                    builder.AddSource(serviceSettings.ServiceName)
+                        .AddSource("MassTransit") // identifier 
+                        .SetResourceBuilder( // creating trading resource 
+                            ResourceBuilder.CreateDefault()
+                                .AddService(serviceName: serviceSettings.ServiceName))
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation()
+                        .AddConsoleExporter();
+                });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -100,6 +115,7 @@ namespace Play.Trading.Service
                 endpoints.MapHub<MessageHub>("/messagehub");
                 endpoints.MapPlayEconomyHealthChecks();
             });
+            
         }
 
         private void AddMassTransit(IServiceCollection services)
