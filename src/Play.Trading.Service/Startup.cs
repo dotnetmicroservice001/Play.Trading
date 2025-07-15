@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using GreenPipes;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,7 +8,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Play.Common.HealthChecks;
 using Play.Common.Identity;
@@ -47,6 +45,7 @@ namespace Play.Trading.Service
                 .AddMongoRepository<InventoryItem>("inventoryitems")
                 .AddMongoRepository<ApplicationUser>("users")
                 .AddJwtBearer();
+            
            AddMassTransit(services);
            services.AddSeqLogging(Configuration); 
             
@@ -117,11 +116,12 @@ namespace Play.Trading.Service
                 // register them with mass transit consumer
                 configure.AddConsumers(Assembly.GetEntryAssembly());
                 
-                configure.AddSagaStateMachine<PurchaseStateMachine, PurchaseState>(sagaConfigurator =>
+                configure.AddSagaStateMachine<PurchaseStateMachine, PurchaseState>(
+                         ( context, sagaConfigurator)  =>
                     {
-                        sagaConfigurator.UseInMemoryOutbox();
+                        sagaConfigurator.UseInMemoryOutbox(context);
                     })
-                    .MongoDbRepository(r =>
+                    .MongoDbRepository( r =>
                         {
                             var serviceSettings = Configuration.GetSection(nameof(ServiceSettings))
                                                     .Get<ServiceSettings>();
@@ -135,9 +135,6 @@ namespace Play.Trading.Service
             EndpointConvention.Map<GrantItems>(new Uri(queueSettings.GrantItemsQueueAddress));
             EndpointConvention.Map<DebitGil>( new Uri(queueSettings.DebitGilQueueAddress));
             EndpointConvention.Map<SubtractItems>( new Uri(queueSettings.SubtractItemsQueueAddress));
-            // to open up the bus through which messages are going to go 
-            services.AddMassTransitHostedService();
-            services.AddGenericRequestClient();
         }
     }
 }
