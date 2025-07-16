@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Play.Common.HealthChecks;
@@ -72,8 +73,16 @@ namespace Play.Trading.Service
                 .AddSignalR();
             
             services.AddHealthChecks().AddMongoDb();
-            
 
+            services.AddOpenTelemetry()
+                .WithMetrics(builder =>
+            {
+                var settings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+                builder.AddMeter(settings.ServiceName)
+                    .AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddPrometheusExporter();
+            }); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,6 +101,8 @@ namespace Play.Trading.Service
                 });
             }
 
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            
             app.UseHttpsRedirection();
 
             app.UseRouting();
