@@ -70,19 +70,27 @@ namespace Play.Trading.Service
                 .AddSignalR();
             
             services.AddHealthChecks().AddMongoDb();
+            
             services.AddOpenTelemetry()
-                .WithTracing(builder =>
+                .WithTracing( builder =>
                 {
                     var serviceSettings = Configuration.GetSection(nameof(ServiceSettings))
                         .Get<ServiceSettings>();
+                    
                     builder.AddSource(serviceSettings.ServiceName)
                         .AddSource("MassTransit") // identifier 
                         .SetResourceBuilder( // creating trading resource 
                             ResourceBuilder.CreateDefault()
                                 .AddService(serviceName: serviceSettings.ServiceName))
-                        .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
-                        .AddConsoleExporter();
+                        .AddHttpClientInstrumentation()
+                        .AddJaegerExporter(options =>
+                        {
+                            var jaegerSettings = Configuration.GetSection(nameof(JaegerSettings))
+                                .Get<JaegerSettings>();
+                            options.AgentHost = jaegerSettings.Host;
+                            options.AgentPort = jaegerSettings.Port;
+                        }); 
                 });
 
         }
@@ -133,7 +141,7 @@ namespace Play.Trading.Service
                 configure.AddConsumers(Assembly.GetEntryAssembly());
                 
                 configure.AddSagaStateMachine<PurchaseStateMachine, PurchaseState>(
-                         ( context, sagaConfigurator)  =>
+                         (context, sagaConfigurator)  =>
                     {
                         sagaConfigurator.UseInMemoryOutbox(context);
                     })
