@@ -16,6 +16,7 @@ using Play.Common.Identity;
 using Play.Common.Logging;
 using Play.Common.MassTransit;
 using Play.Common.MongoDB;
+using Play.Common.OpenTelemetry;
 using Play.Common.Settings;
 using Play.Identity.Contracts;
 using Play.Inventory.Contracts;
@@ -49,7 +50,8 @@ namespace Play.Trading.Service
                 .AddJwtBearer();
             
            AddMassTransit(services);
-           services.AddSeqLogging(Configuration); 
+           services.AddSeqLogging(Configuration)
+               .AddTracing(Configuration); 
             
            services.AddControllers(options =>
                {
@@ -71,27 +73,6 @@ namespace Play.Trading.Service
             
             services.AddHealthChecks().AddMongoDb();
             
-            services.AddOpenTelemetry()
-                .WithTracing( builder =>
-                {
-                    var serviceSettings = Configuration.GetSection(nameof(ServiceSettings))
-                        .Get<ServiceSettings>();
-                    
-                    builder.AddSource(serviceSettings.ServiceName)
-                        .AddSource("MassTransit") // identifier 
-                        .SetResourceBuilder( // creating trading resource 
-                            ResourceBuilder.CreateDefault()
-                                .AddService(serviceName: serviceSettings.ServiceName))
-                        .AddAspNetCoreInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddJaegerExporter(options =>
-                        {
-                            var jaegerSettings = Configuration.GetSection(nameof(JaegerSettings))
-                                .Get<JaegerSettings>();
-                            options.AgentHost = jaegerSettings.Host;
-                            options.AgentPort = jaegerSettings.Port;
-                        }); 
-                });
 
         }
 
