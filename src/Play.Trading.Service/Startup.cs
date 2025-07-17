@@ -52,7 +52,8 @@ namespace Play.Trading.Service
             
            AddMassTransit(services);
            services.AddSeqLogging(Configuration)
-               .AddTracing(Configuration); 
+               .AddTracing(Configuration)
+               .AddMetrics(Configuration); 
             
            services.AddControllers(options =>
                {
@@ -73,16 +74,7 @@ namespace Play.Trading.Service
                 .AddSignalR();
             
             services.AddHealthChecks().AddMongoDb();
-
-            services.AddOpenTelemetry()
-                .WithMetrics(builder =>
-            {
-                var settings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
-                builder.AddMeter(settings.ServiceName)
-                    .AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation()
-                    .AddPrometheusExporter();
-            }); 
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
