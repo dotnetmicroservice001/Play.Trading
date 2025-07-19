@@ -51,6 +51,7 @@ namespace Play.Trading.Service
                 .AddJwtBearer();
             
            AddMassTransit(services);
+           
            services.AddSeqLogging(Configuration)
                .AddTracing(Configuration)
                .AddMetrics(Configuration); 
