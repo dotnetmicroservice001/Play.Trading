@@ -9,9 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using Play.Common.HealthChecks;
 using Play.Common.Identity;
 using Play.Common.Logging;
@@ -55,6 +52,7 @@ namespace Play.Trading.Service
            services.AddSeqLogging(Configuration)
                .AddTracing(Configuration)
                .AddMetrics(Configuration); 
+           
             
            services.AddControllers(options =>
                {
@@ -95,7 +93,6 @@ namespace Play.Trading.Service
             }
 
             app.UseOpenTelemetryPrometheusScrapingEndpoint();
-            
             app.UseHttpsRedirection();
 
             app.UseRouting();
