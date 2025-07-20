@@ -113,7 +113,7 @@ helmUser="00000000-0000-0000-0000-000000000000"
 helmPassword=$(az acr login --name $appname --expose-token --output tsv --query accessToken)
 helm registry login $appname.azurecr.io --username $helmUser --password $helmPassword 
 
-chartVersion="0.1.2"
+chartVersion="0.1.7"
 helm upgrade "$namespace-service" oci://$appname.azurecr.io/helm/microservice --version $chartVersion -f ./helm/values.yaml -n $namespace --install
 ```
 

@@ -2,7 +2,7 @@ microserviceName: "trading"
 
 image:
   repository: playeconomyapp.azurecr.io/play.trading
-  tag : 1.0.12
+  tag : 1.0.16
 
 envVariables:
   IdentitySettings__PathBase: /trading-svc
