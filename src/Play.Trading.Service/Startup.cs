@@ -93,7 +93,7 @@ namespace Play.Trading.Service
                 });
             }
 
-            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            //app.UseOpenTelemetryPrometheusScrapingEndpoint();
             app.UseHttpsRedirection();
 
             app.UseRouting();
