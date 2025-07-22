@@ -30,7 +30,7 @@ jobs:
    env:
      APP_NAME: playeconomyapp
      SERVICE_NAME: trading
-     HELM_CHART_VERSION: 0.1.4
+     HELM_CHART_VERSION: 0.1.11
    
    permissions:
      id-token: write
