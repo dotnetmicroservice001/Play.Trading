@@ -50,7 +50,7 @@ namespace Play.Trading.Service
            AddMassTransit(services);
            
            services.AddSeqLogging(Configuration)
-               //.AddTracing(Configuration)
+               .AddTracing(Configuration)
                //.AddMetrics(Configuration)
                ; 
            
