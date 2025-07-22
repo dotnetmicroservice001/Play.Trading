@@ -51,8 +51,7 @@ namespace Play.Trading.Service
            
            services.AddSeqLogging(Configuration)
                .AddTracing(Configuration)
-               //.AddMetrics(Configuration)
-               ; 
+               .AddMetrics(Configuration); 
            
             
            services.AddControllers(options =>
@@ -93,7 +92,7 @@ namespace Play.Trading.Service
                 });
             }
 
-            //app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
             app.UseHttpsRedirection();
 
             app.UseRouting();
