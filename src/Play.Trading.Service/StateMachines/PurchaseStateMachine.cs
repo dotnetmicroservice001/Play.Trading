@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
@@ -74,6 +75,7 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
     }
     private void ConfigureInitialState()
     {
+        var start = Stopwatch.StartNew();
         Initially(
             When(PurchaseRequested)
                 .Then(context =>
@@ -120,6 +122,9 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                     .ThenAsync( async context => await _messageHub.SendStatusAsync(context.Saga))
                 )
         );
+        
+        var end = start.ElapsedMilliseconds;
+        _logger.LogInformation("PurchaseStateMachine initialized in {ElapsedMilliseconds} ms", end);
     }
 
     private void ConfigureAccepted()
