@@ -65,15 +65,20 @@ docker push "$appname.azurecr.io/play.trading:$version"
 
 Build a multi-architecture image (ARM64 for local M2 Mac, AMD64 for AKS) and push to ACR:
 ```bash
-version="1.0.4"
+version="1.0.0"
 export GH_OWNER=dotnetmicroservice001
 export GH_PAT="ghp_YourRealPATHere"
-export appname="playeconomyapp"
-az acr login --name $appname
+
+export ACR="acrpfpos"
+export RG=rg-playground
+export AKS="aks-playground"
+export KV="kv-pf-pos"
+
+az acr login --name $ACR
 docker buildx build \
   --platform linux/amd64 \
   --secret id=GH_OWNER --secret id=GH_PAT \
-  -t "$appname.azurecr.io/play.trading:$version" \
+  -t "$ACR.azurecr.io/play.trading:$version" \
   --push .
 ```
 
@@ -89,32 +94,31 @@ kubectl apply -f ./kubernetes/${namespace}.yaml -n "$namespace"
 
 ## Creating Azure Managed Identity and granting it access to Key Vault Store
 ```bash
-export appname=playeconomyapp
-az identity create --resource-group $appname --name $namespace 
+az identity create --resource-group $RG --name $namespace 
 
-export IDENTITY_CLIENT_ID=$(az identity show -g "$appname" -n "$namespace" --query clientId -o tsv)
+export IDENTITY_CLIENT_ID=$(az identity show -g "$RG" -n "$namespace" --query clientId -o tsv)
 export SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
 az role assignment create \
   --assignee "$IDENTITY_CLIENT_ID" \
   --role "Key Vault Secrets User" \
-  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$appname/providers/Microsoft.KeyVault/vaults/$appname"
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KV"
 ```
 
 ## Establish the related Identity Credential
 ```bash
-export AKS_OIDC_ISSUER="$(az aks show -n $appname -g $appname --query "oidcIssuerProfile.issuerUrl" -otsv)"
-az identity federated-credential create --name ${namespace} --identity-name "${namespace}" --resource-group "${appname}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${namespace}":"${namespace}-serviceaccount" --audience api://AzureADTokenExchange
+export AKS_OIDC_ISSUER="$(az aks show -n $AKS -g $RG --query "oidcIssuerProfile.issuerUrl" -otsv)"
+az identity federated-credential create --name ${namespace} --identity-name "${namespace}" --resource-group "${RG}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${namespace}":"${namespace}-serviceaccount" --audience api://AzureADTokenExchange
 ```
 
 ## install helm chart
 ```bash 
 helmUser="00000000-0000-0000-0000-000000000000"
-helmPassword=$(az acr login --name $appname --expose-token --output tsv --query accessToken)
-helm registry login $appname.azurecr.io --username $helmUser --password $helmPassword 
+helmPassword=$(az acr login --name $ACR --expose-token --output tsv --query accessToken)
+helm registry login $ACR.azurecr.io --username $helmUser --password $helmPassword 
 
-chartVersion="0.1.11"
-helm upgrade "$namespace-service" oci://$appname.azurecr.io/helm/microservice --version $chartVersion -f ./helm/values.yaml -n $namespace --install
+chartVersion="0.1.0"
+helm upgrade "pe-$namespace-service" oci://$ACR.azurecr.io/helm/playflow-microservice --version $chartVersion -f ./helm/values.yaml -n $namespace --install
 ```
 
 ---

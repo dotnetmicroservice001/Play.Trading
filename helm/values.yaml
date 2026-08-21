@@ -1,15 +1,28 @@
 microserviceName: "trading"
 
+strategy:
+  type: Recreate
+  rollingUpdate: null
+
 image:
-  repository: playeconomyapp.azurecr.io/play.trading
-  tag : 1.0.19
+  repository: acrpfpos.azurecr.io/play.trading
+  tag : 1.0.0
 
 envVariables:
   IdentitySettings__PathBase: /trading-svc
-  ServiceSettings__Authority: https://playeconomyapp.westus.cloudapp.azure.com/identity-svc
-
+  ServiceSettings__Authority: https://gameplayeconomy.com/identity-svc
+  ASPNETCORE_URLS: "http://0.0.0.0:5006"
+  
 container:
   port: 5006
 
-identityClientId: 14350601-1910-4dcc-a4b6-ba33fffa3f0b
+resources:
+  requests:
+    memory: "180Mi"
+    cpu: "20m"
+  limits:
+    memory: "256Mi"
+    cpu: "100m"
+
+identityClientId: 502724e1-231a-47d4-9e65-8cd6da7262c8
     
