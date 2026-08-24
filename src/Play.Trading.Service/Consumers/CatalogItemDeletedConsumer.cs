@@ -6,7 +6,7 @@ using Play.Trading.Service.Entities;
 
 namespace Play.Trading.Service.Consumer;
 
-public class CatalogItemDeletedConsumer : IConsumer<CatalogItemCreated>
+public class CatalogItemDeletedConsumer : IConsumer<CatalogItemDeleted>
 {
     private readonly IRepository<CatalogItem> _catalogItemRepository;
 
@@ -14,8 +14,8 @@ public class CatalogItemDeletedConsumer : IConsumer<CatalogItemCreated>
     {
         _catalogItemRepository = catalogItemRepository;
     }
-    
-    public async Task Consume(ConsumeContext<CatalogItemCreated> context)
+
+    public async Task Consume(ConsumeContext<CatalogItemDeleted> context)
     {
         var message = context.Message;
         // checks to see if the item with the ID already exists, 
