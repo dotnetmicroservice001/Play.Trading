@@ -36,7 +36,10 @@ public class CatalogItemCreatedConsumer : IConsumer<CatalogItemCreated>
             Id = message.ItemId,
             Name = message.ItemName,
             Description = message.Description,
-            Price = message.Price
+            Price = message.Price,
+            Category = message.Category,
+            ImageUrl = message.ImageUrl,
+            Rarity = message.Rarity
         };
 
         await _catalogItemRepository.CreateAsync(item); 

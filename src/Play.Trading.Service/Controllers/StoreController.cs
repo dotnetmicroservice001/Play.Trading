@@ -41,12 +41,15 @@ public class StoreController : ControllerBase
 
         var storeDto = new StoreDto(catalogItems.Select(
             catalogItem => new StoreItemDto(
-                // list the fields of all catalog items 
+                // list the fields of all catalog items
                 catalogItem.Id,
                 catalogItem.Name,
                 catalogItem.Description,
                 catalogItem.Price,
-                // query inventory find the first, if not found return zero 
+                catalogItem.Category,
+                catalogItem.ImageUrl,
+                catalogItem.Rarity,
+                // query inventory find the first, if not found return zero
                 OwnedQuantity: inventoryItems.FirstOrDefault(inventoryItem => inventoryItem.CatalogItemID == catalogItem.Id)?
                     .Quantity ?? 0
                 )
